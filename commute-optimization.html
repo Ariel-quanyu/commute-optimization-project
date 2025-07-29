@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ariel Qian">
+
+<title>Commute Optimization Project</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="commute-optimization_files/libs/clipboard/clipboard.min.js"></script>
+<script src="commute-optimization_files/libs/quarto-html/quarto.js"></script>
+<script src="commute-optimization_files/libs/quarto-html/popper.min.js"></script>
+<script src="commute-optimization_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="commute-optimization_files/libs/quarto-html/anchor.min.js"></script>
+<link href="commute-optimization_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="commute-optimization_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="commute-optimization_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="commute-optimization_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="commute-optimization_files/libs/bootstrap/bootstrap-1bc8a17f135ab3d594c857e9f48e611b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Commute Optimization Project</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ariel Qian </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="project-background" class="level2">
+<h2 class="anchored" data-anchor-id="project-background">1. Project Background</h2>
+<p>Melbourne faces increasing traffic congestion, especially during peak commuting hours. This project uses traffic sensor data from SCATS detectors to analyze vehicle volume patterns. The goal is to identify high-congestion periods and propose data-driven recommendations for signal timing and route planning.</p>
+</section>
+<section id="data-overview" class="level2">
+<h2 class="anchored" data-anchor-id="data-overview">2. Data Overview</h2>
+<section id="step-1-load-all-csvs-into-one-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-load-all-csvs-into-one-dataset">Step 1: Load all CSVs into one dataset</h3>
+</section>
+</section>
+<section id="why-this-step" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-step">Why this step?</h2>
+<p>The dataset consists of multiple daily CSV files from July 2025. We load and merge them to create a complete dataset for analysis.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 2,305,489
+Columns: 103
+$ NB_SCATS_SITE     &lt;dbl&gt; 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 10…
+$ QT_INTERVAL_COUNT &lt;date&gt; 2025-07-01, 2025-07-01, 2025-07-01, 2025-07-01, 202…
+$ NB_DETECTOR       &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1…
+$ V00               &lt;dbl&gt; 3, 8, 14, 8, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, …
+$ V01               &lt;dbl&gt; 3, 14, 20, 8, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,…
+$ V02               &lt;dbl&gt; 2, 10, 16, 8, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,…
+$ V03               &lt;dbl&gt; 4, 7, 12, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, …
+$ V04               &lt;dbl&gt; 2, 9, 9, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V05               &lt;dbl&gt; 0, 5, 15, 6, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, …
+$ V06               &lt;dbl&gt; 2, 5, 7, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V07               &lt;dbl&gt; 1, 6, 7, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V08               &lt;dbl&gt; 2, 2, 7, 5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V09               &lt;dbl&gt; 0, 0, 5, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V10               &lt;dbl&gt; 5, 3, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V11               &lt;dbl&gt; 0, 1, 7, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V12               &lt;dbl&gt; 1, 2, 13, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
+$ V13               &lt;dbl&gt; 1, 1, 6, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V14               &lt;dbl&gt; 1, 4, 7, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V15               &lt;dbl&gt; 0, 3, 6, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V16               &lt;dbl&gt; 0, 0, 6, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+$ V17               &lt;dbl&gt; 0, 1, 10, 5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
+$ V18               &lt;dbl&gt; 1, 5, 21, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
+$ V19               &lt;dbl&gt; 1, 3, 18, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, …
+$ V20               &lt;dbl&gt; 1, 7, 18, 8, 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, …
+$ V21               &lt;dbl&gt; 0, 11, 28, 14, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0…
+$ V22               &lt;dbl&gt; 2, 19, 40, 28, 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0…
+$ V23               &lt;dbl&gt; 14, 22, 53, 27, 6, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, …
+$ V24               &lt;dbl&gt; 10, 28, 38, 32, 8, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, …
+$ V25               &lt;dbl&gt; 9, 44, 67, 49, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0…
+$ V26               &lt;dbl&gt; 10, 56, 89, 70, 9, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, …
+$ V27               &lt;dbl&gt; 9, 52, 80, 63, 17, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, …
+$ V28               &lt;dbl&gt; 5, 58, 68, 65, 8, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0…
+$ V29               &lt;dbl&gt; 10, 78, 92, 85, 12, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1,…
+$ V30               &lt;dbl&gt; 6, 92, 110, 103, 4, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,…
+$ V31               &lt;dbl&gt; 12, 115, 100, 112, 11, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V32               &lt;dbl&gt; 16, 99, 100, 106, 14, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, …
+$ V33               &lt;dbl&gt; 25, 128, 133, 138, 15, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V34               &lt;dbl&gt; 12, 147, 152, 135, 27, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V35               &lt;dbl&gt; 14, 134, 141, 164, 21, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V36               &lt;dbl&gt; 12, 130, 106, 106, 21, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V37               &lt;dbl&gt; 14, 100, 102, 93, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, …
+$ V38               &lt;dbl&gt; 7, 107, 101, 109, 13, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, …
+$ V39               &lt;dbl&gt; 5, 113, 102, 92, 13, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2…
+$ V40               &lt;dbl&gt; 7, 101, 105, 85, 15, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1…
+$ V41               &lt;dbl&gt; 7, 107, 104, 104, 15, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, …
+$ V42               &lt;dbl&gt; 8, 101, 97, 92, 10, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1,…
+$ V43               &lt;dbl&gt; 15, 98, 83, 78, 18, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1,…
+$ V44               &lt;dbl&gt; 13, 121, 102, 93, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
+$ V45               &lt;dbl&gt; 14, 125, 101, 86, 13, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, …
+$ V46               &lt;dbl&gt; 13, 107, 94, 73, 12, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1…
+$ V47               &lt;dbl&gt; 16, 123, 96, 87, 18, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2…
+$ V48               &lt;dbl&gt; 6, 123, 94, 82, 17, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1,…
+$ V49               &lt;dbl&gt; 12, 116, 107, 98, 12, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, …
+$ V50               &lt;dbl&gt; 14, 126, 107, 91, 14, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, …
+$ V51               &lt;dbl&gt; 11, 125, 122, 109, 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V52               &lt;dbl&gt; 10, 122, 85, 99, 18, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1…
+$ V53               &lt;dbl&gt; 16, 105, 111, 109, 11, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V54               &lt;dbl&gt; 17, 111, 111, 105, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V55               &lt;dbl&gt; 12, 119, 117, 104, 14, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V56               &lt;dbl&gt; 12, 139, 116, 121, 14, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V57               &lt;dbl&gt; 11, 144, 142, 140, 13, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V58               &lt;dbl&gt; 13, 125, 127, 145, 13, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V59               &lt;dbl&gt; 19, 163, 139, 142, 16, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V60               &lt;dbl&gt; 20, 175, 149, 169, 13, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V61               &lt;dbl&gt; 20, 175, 178, 177, 24, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V62               &lt;dbl&gt; 11, 201, 173, 173, 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V63               &lt;dbl&gt; 21, 196, 182, 184, 17, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V64               &lt;dbl&gt; 19, 213, 208, 183, 15, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V65               &lt;dbl&gt; 15, 222, 212, 221, 10, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V66               &lt;dbl&gt; 9, 216, 199, 196, 8, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2…
+$ V67               &lt;dbl&gt; 18, 224, 206, 215, 24, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V68               &lt;dbl&gt; 12, 240, 215, 225, 25, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V69               &lt;dbl&gt; 14, 217, 191, 211, 10, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V70               &lt;dbl&gt; 15, 209, 195, 205, 15, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V71               &lt;dbl&gt; 15, 206, 190, 212, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…
+$ V72               &lt;dbl&gt; 12, 181, 163, 170, 12, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,…
+$ V73               &lt;dbl&gt; 10, 172, 173, 157, 8, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, …
+$ V74               &lt;dbl&gt; 12, 150, 119, 139, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,…
+$ V75               &lt;dbl&gt; 13, 131, 129, 118, 13, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0,…
+$ V76               &lt;dbl&gt; 15, 108, 89, 82, 15, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3…
+$ V77               &lt;dbl&gt; 12, 101, 103, 86, 19, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, …
+$ V78               &lt;dbl&gt; 14, 78, 83, 74, 13, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2,…
+$ V79               &lt;dbl&gt; 7, 89, 75, 58, 15, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, …
+$ V80               &lt;dbl&gt; 11, 78, 94, 70, 7, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, …
+$ V81               &lt;dbl&gt; 11, 81, 61, 57, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,…
+$ V82               &lt;dbl&gt; 9, 81, 77, 70, 7, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0…
+$ V83               &lt;dbl&gt; 5, 53, 75, 52, 11, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, …
+$ V84               &lt;dbl&gt; 13, 65, 65, 59, 15, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,…
+$ V85               &lt;dbl&gt; 9, 65, 68, 78, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, …
+$ V86               &lt;dbl&gt; 29, 77, 93, 79, 9, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1, …
+$ V87               &lt;dbl&gt; 3, 45, 64, 63, 12, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, …
+$ V88               &lt;dbl&gt; 7, 33, 63, 48, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0…
+$ V89               &lt;dbl&gt; 11, 51, 55, 47, 13, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1,…
+$ V90               &lt;dbl&gt; 7, 43, 57, 41, 8, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0…
+$ V91               &lt;dbl&gt; 4, 38, 47, 37, 12, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, …
+$ V92               &lt;dbl&gt; 5, 32, 43, 23, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0…
+$ V93               &lt;dbl&gt; 1, 15, 27, 18, 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0…
+$ V94               &lt;dbl&gt; 2, 14, 23, 13, 4, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0…
+$ V95               &lt;dbl&gt; 3, 11, 31, 13, 4, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0…
+$ NM_REGION         &lt;chr&gt; "WV1", "WV1", "WV1", "WV1", "WV1", "WV1", "WV1", "WV…
+$ CT_RECORDS        &lt;dbl&gt; 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, …
+$ QT_VOLUME_24HOUR  &lt;dbl&gt; 882, 8316, 8266, 7754, 996, 0, 0, 0, 0, 0, 0, 0, 0, …
+$ CT_ALARM_24HOUR   &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…</code></pre>
+</div>
+</div>
+<section id="step-2-preview-structure-and-check-completeness" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-preview-structure-and-check-completeness">Step 2: Preview structure and check completeness</h3>
+</section>
+</section>
+<section id="why-this-step-1" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-step-1">Why this step?</h2>
+<p>I inspect the dataset’s structure to understand available variables (e.g.&nbsp;site ID, date, detector volume v00–v95) and ensure all expected files were successfully loaded.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "NB_SCATS_SITE"     "QT_INTERVAL_COUNT" "NB_DETECTOR"      
+ [4] "V00"               "V01"               "V02"              
+ [7] "V03"               "V04"               "V05"              
+[10] "V06"               "V07"               "V08"              
+[13] "V09"               "V10"               "V11"              
+[16] "V12"               "V13"               "V14"              
+[19] "V15"               "V16"              </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2305489     103</code></pre>
+</div>
+</div>
+<section id="step-3-check-data-consistency-across-days" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-check-data-consistency-across-days">Step 3: Check data consistency across days</h3>
+</section>
+</section>
+<section id="why-this-step-2" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-step-2">Why this step?</h2>
+<p>I visualize the number of records per day to ensure data coverage is consistent throughout July. Sudden drops may indicate missing files or data collection issues.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="commute-optimization_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="congestion-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="congestion-analysis">3. Congestion Analysis</h2>
+<section id="objective" class="level3">
+<h3 class="anchored" data-anchor-id="objective">Objective</h3>
+<p>To identify peak congestion periods across different days and hours, helping prioritize signal timing and commute management strategies.</p>
+<hr>
+</section>
+<section id="step-1-calculate-total-volume-per-record" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-calculate-total-volume-per-record">Step 1: Calculate Total Volume per Record</h3>
+<p>Why this step?<br>
+The original dataset records traffic counts across multiple detector columns (<code>v00</code> to <code>v95</code>). Summing these provides the <strong>total vehicle count</strong> per row.</p>
+</section>
+<section id="step-2-aggregate-daily-volume" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-aggregate-daily-volume">Step 2: Aggregate Daily Volume</h3>
+<p>Why this step? Summarizing daily total volume allows us to observe overall traffic trends over time and detect any weekday-weekend patterns.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="commute-optimization_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Key Insight:</strong><br>
+&gt; The trend reveals a clear <strong>weekly pattern</strong>: traffic volumes remain high during weekdays and drop sharply over weekends.</p>
+<blockquote class="blockquote">
+<p>This confirms that <strong>congestion is driven by weekday commuting</strong>, making morning and evening peak hours during those days critical for optimization.</p>
+</blockquote>
+</section>
+<section id="step-3-aggregate-traffic-by-hour" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-aggregate-traffic-by-hour">Step 3: Aggregate Traffic by Hour</h3>
+</section>
+</section>
+<section id="why-this-step-3" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-step-3">Why this step?</h2>
+<p>While daily totals help us detect weekday-weekend patterns, they do not reveal intra-day congestion spikes. To optimize signal timing and improve route planning, we need to understand which hours of the day experience the highest traffic volumes, especially during morning and evening peaks.</p>
+<p>This step summarizes traffic by hour to identify <strong>rush hour windows</strong> and evaluate if there are <strong>consistent congestion patterns</strong> across days.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="commute-optimization_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
