@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Melbourne Traffic Pattern Analysis
 
 ## 1. Data Source
@@ -51,3 +52,6 @@ This analysis highlights two distinct congestion profiles:
 Understanding these patterns allows traffic authorities to **apply location-specific strategies**, improving network efficiency while minimising unnecessary interventions.
 
 
+=======
+# commute-optimization-project
+>>>>>>> 7b338415e11c99d5f430de0d674326411ef085ba
