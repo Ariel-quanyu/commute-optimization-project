@@ -1,81 +1,53 @@
-# Melbourne Commute Optimization Engine  
-**Data-Driven Solutions for VicRoads' Congestion Hotspots**  
+# Melbourne Traffic Pattern Analysis
 
-> *Prototype validated using VicRoads Level of Service (LOS) thresholds*  
+## 1. Data Source
+- **Dataset**: Simulated SCATS traffic detector data (V00–V95) for Melbourne intersections.
+- **Note**: The station IDs and locations are anonymised and randomly generated to protect real SCATS site data.
+- **Time Coverage**: Multiple weeks of 15-min interval counts.
+- **Metrics**: Detector counts, aggregated into `total_volume` per site per interval.
 
-![Traffic Heatmap](traffic_heatmap.png)  
-*▲ Heatmap showing peak-hour congestion patterns across weekdays (Hoddle St, July 2025)*
+---
 
-## 🗂️ Contents
-- [Dataset Source](#-dataset-source)
-- [Project Goal](#-project-goal)
-- [Key Findings](#-key-findings) 
-- [Technical Implementation](#-technical-implementation)
+## 2. Methodology
+1. **Data Cleaning**
+   - Filled missing values with 0 and set negative counts to 0.
+   - Aggregated detector counts (`V00–V95`) into `total_volume`.
+   - Removed duplicate site–timestamp records.
+   - Validated data consistency with summary statistics and histograms.
 
+2. **Exploratory Analysis**
+   - Ranked sites by total traffic volume.
+   - Selected top 2 busiest intersections for deeper analysis.
+   - Generated hourly–day-of-week heatmaps to identify congestion patterns.
 
-## 📂 Dataset Source
-*Simulated dataset characteristics*:
-- 📅 Time Period: 1-20 July 2025 
-- 🏙️ Coverage: 15 key Melbourne intersections
-- 🚦 Metrics: 
-  - Vehicle counts (15-min intervals)
-  - Directional flow rates
-  - Signal phase timing (simulated)
+---
 
-## 🔍 Project Goal
+## 3. Key Insights
 
-To demonstrate analytical thinking, R scripting, and visualization skills by analyzing urban traffic patterns and suggesting data-driven improvements for commuting efficiency.
+### Location A
+- Peak congestion during weekday **morning (7–9 AM)** and **evening (4–6 PM)** commute hours.
+- Traffic pattern suggests **commuter and school-related** demand.
+- Low weekend volumes.
 
-## ⚙️ Technical Implementation
-**Core Stack**:
-- **Language**: R 4.3.2
-- **Data Processing**: `tidyverse` (dplyr, tidyr, lubridate) + custom SCATS parsers
-- **Visualization**: `ggplot2` + `plotly` interactive elements
-- **Reporting**: Parameterized Quarto documents
+### Location B
+- Consistently high traffic from **morning to evening**, across **all days**.
+- Sustained **weekend peaks**, likely due to **shopping centres or event venues**.
+- Traffic pattern suggests a **mix of commuter, commercial, and recreational** demand.
 
-## 📊 Key Findings
-- 🚗 Weekday traffic peaks at 8:00 AM and 5:00 PM
-+ 🚗 **AM Peak**: 7:30-9:00 (Avg. speed drop 42% on Hoddle St)
-+ 🚙 **PM Peak**: 16:30-18:30 (25% longer than pre-pandemic)
-Temporal Patterns
-🕗 AM Peak (7:30-9:00):
-- 42% speed reduction on Hoddle St NB
-- 22% spillback at key intersections
+---
 
-🕔 PM Peak (16:30-18:30):
-- 18% longer duration than 2019 baseline
-- Friday volumes persist until 19:00
+## 4. Applications
+- **Location A**: Optimise weekday peak-hour signal timings to improve commuter flow.
+- **Location B**: Implement adaptive signal control to handle prolonged high traffic volumes.
+- Use patterns for **event planning, targeted congestion relief, and road maintenance scheduling**.
 
-Spatial Hotspots
-📍 Top 3 Bottlenecks:
-- Hoddle St/Swan St (LOS F)
-- Punt Rd/Commercial Rd
+---
 
-Alexandra Parade/Nicholson St
-## 📌 Recommendations
-🔄 Adjust Signal Timing during Peak Hours
-Traffic data shows the heaviest congestion occurs between 8:00–9:00 AM on weekdays, especially on Hoddle Street and Punt Road. This delay significantly impacts daily commutes.
+## 5. Summary
+This analysis highlights two distinct congestion profiles:
+- **Location A** – Short, high-intensity commuter peaks.
+- **Location B** – All-day, multi-purpose traffic demand.
 
-Recommendation: Adjust signal phasing to prioritize northbound traffic during this window, and synchronize adjacent intersections to improve flow.
+Understanding these patterns allows traffic authorities to **apply location-specific strategies**, improving network efficiency while minimising unnecessary interventions.
 
-🕓 Extend Off-Peak Promotions
-Friday afternoons see extended congestion from 4:00–7:00 PM, unlike other weekdays. This may be related to post-work travel or weekend getaways.
-
-Recommendation: Encourage mode shift through off-peak pricing incentives or increased public transport options from 3:30 PM onward.
-
-📍 Target High-Congestion Zones with Real-Time Monitoring
-The heatmap identifies consistent bottlenecks around [Example Intersection].
-
-Recommendation: Deploy sensors or real-time dashboards in these zones for ongoing monitoring and adaptive response.
-
-These recommendations are based on weekday-hour aggregation, congestion clustering, and visual pattern recognition from the heatmap and time-series plots.
-
-## 🚀 Recommended Actions
-1. **Immediate** (0-3 months):
-   - Implement dynamic signal timing at 3 priority intersections
-   - Pilot contraflow lane 7:00-9:00 (Hoddle St SB)
-
-2. **Strategic** (6-12 months):
-   - Deploy IoT sensors for real-time monitoring
-   - Develop predictive congestion dashboard
 

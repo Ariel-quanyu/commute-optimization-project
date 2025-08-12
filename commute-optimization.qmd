@@ -11,7 +11,7 @@ editor: visual
 
 ## 1. Project Background
 
-Melbourne faces increasing traffic congestion, especially during peak commuting hours. This project uses traffic sensor data from SCATS detectors to analyze vehicle volume patterns. The goal is to identify high-congestion periods and propose data-driven recommendations for signal timing and route planning.
+Melbourne faces increasing traffic congestion, especially during peak commuting hours. This project uses traffic sensor data from SCATS detectors to analyse vehicle volume patterns. The goal is to identify high-congestion periods and propose data-driven recommendations for signal timing and route planning.
 
 ## 2. Data Overview
 
@@ -22,210 +22,292 @@ Melbourne faces increasing traffic congestion, especially during peak commuting 
 The dataset consists of multiple daily CSV files from July 2025. We load and merge them to create a complete dataset for analysis.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+library(janitor)
+
 library(tidyverse)
-
-file_list <- list.files("traffic_signal_volume_data_july_2025", full.names = TRUE)
-traffic <- file_list %>%
-  map_df(read_csv)
-
-glimpse(traffic)
-
-```
-
-### Step 2: Preview structure and check completeness
-
-## Why this step?
-
-I inspect the dataset’s structure to understand available variables (e.g. site ID, date, detector volume v00–v95) and ensure all expected files were successfully loaded.
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-library(tidyverse)
+library(readr)
+library(lubridate)
 
 
-colnames(traffic)[1:20] 
+files <- list.files("traffic_signal_volume_data_july_2025", full.names = TRUE)
+traffic <- files |>
+  map_df(~ read_csv(.x,
+                    col_types = cols(.default = col_double(),
+                                     NB_SCATS_SITE = col_character(),
+                                     QT_INTERVAL_COUNT = col_datetime()))) |>
+  janitor::clean_names()  
 
 
-dim(traffic)
-```
+traffic <- traffic |>
+  select(nb_scats_site, qt_interval_count, starts_with("v"))
 
-### Step 3: Check data consistency across days
 
-## Why this step?
+coverage <- traffic |>
+  count(date = as_date(qt_interval_count)) |>
+  arrange(date)
 
-I visualize the number of records per day to ensure data coverage is consistent throughout July. Sudden drops may indicate missing files or data collection issues.
+coverage
 
-```{r}
-traffic %>%
-  count(QT_INTERVAL_COUNT) %>%
-  ggplot(aes(x = as.Date(QT_INTERVAL_COUNT), y = n)) +
+
+coverage |>
+  ggplot(aes(x = date, y = n)) +
   geom_col(fill = "steelblue") +
-  labs(title = "Daily Record Count", x = "Date", y = "Observations")
-```
-
-## 3. Congestion Analysis
-
-### Objective
-
-To identify peak congestion periods across different days and hours, helping prioritize signal timing and commute management strategies.
-
-------------------------------------------------------------------------
-
-### Step 1: Calculate Total Volume per Record
-
-Why this step?\
-The original dataset records traffic counts across multiple detector columns (`v00` to `v95`). Summing these provides the **total vehicle count** per row.
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-traffic <- traffic %>%
-  mutate(total_volume = rowSums(select(., starts_with("v")), na.rm = TRUE))
-```
-
-### Step 2: Aggregate Daily Volume
-
-Why this step? Summarizing daily total volume allows us to observe overall traffic trends over time and detect any weekday-weekend patterns.
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-
-
-library(lubridate)
-
-traffic_summary <- traffic %>%
-  mutate(date = as.Date(QT_INTERVAL_COUNT)) %>%
-  group_by(date) %>%
-  summarise(daily_volume = sum(total_volume, na.rm = TRUE)) %>%
-  mutate(weekday = wday(date, label = TRUE, abbr = FALSE)) 
-
-ggplot(traffic_summary, aes(x = date, y = daily_volume)) +
-  geom_line(linewidth = 1, color = "steelblue") +
-  scale_x_date(
-    date_labels = "%b %d\n%A",  
-    date_breaks = "1 day"
-  ) +
-  labs(
-    title = "Daily Traffic Volume Trend (July 2025)",
-    x = "Date",
-    y = "Total Vehicle Count"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-```
-
-**Key Insight:**\
-\> The trend reveals a clear **weekly pattern**: traffic volumes remain high during weekdays and drop sharply over weekends.
-
-> This confirms that **congestion is driven by weekday commuting**, making morning and evening peak hours during those days critical for optimization.
-
-### Step 3: Aggregate Traffic by Hour
-
-## Why this step?
-
-While daily totals help us detect weekday-weekend patterns, they do not reveal intra-day congestion spikes. To optimize signal timing and improve route planning, we need to understand which hours of the day experience the highest traffic volumes, especially during morning and evening peaks.
-
-This step summarizes traffic by hour to identify **rush hour windows** and evaluate if there are **consistent congestion patterns** across days.
-
-```{r}
-library(tidyr)
-
-traffic_long <- traffic %>%
-  pivot_longer(
-    cols = starts_with("v"),
-    names_to = "interval",
-    values_to = "volume"
-  )
-
-traffic_long <- traffic_long %>%
-  mutate(
-    date = as.Date(QT_INTERVAL_COUNT),
-    interval_num = as.integer(substr(interval, 2, 3)),  # "v00" → 0, "v01" → 1, ...
-    hour = floor(interval_num / 4),
-    weekday = wday(date, label = TRUE, abbr = FALSE)
-  )
-
-
-```
-
-```{r}
-
-library(dplyr)
-library(tidyr)
-library(lubridate)
-library(ggplot2)
-
-
-
-traffic_long <- traffic %>%
-  pivot_longer(
-    cols = starts_with("v"),
-    names_to = "interval",
-    values_to = "volume"
-  )
-
-traffic_long <- traffic_long %>%
-  mutate(
-    date = as.Date(QT_INTERVAL_COUNT),
-    interval_num = as.integer(substr(interval, 2, 3)),   
-    hour = floor(interval_num / 4),                   
-    weekday = wday(date, label = TRUE, abbr = FALSE)
-  )
-
-
-traffic_by_hour <- traffic_long %>%
-  group_by(hour, weekday) %>%
-  summarise(avg_volume = mean(volume, na.rm = TRUE), .groups = "drop")
-
-ggplot(traffic_by_hour, aes(x = hour, y = avg_volume, color = weekday, group = weekday)) +
-  geom_line(linewidth = 1) +
-  scale_x_continuous(breaks = 0:23) +
-  labs(
-    title = "Hourly Average Traffic Volume by Weekday",
-    x = "Hour of Day",
-    y = "Average Vehicle Count"
-  ) +
+  labs(title = "Daily Record Count", x = "Date", y = "Observations") +
   theme_minimal()
 
 
 ```
 
-```{r}
 
+** Daily record counts remain consistent (~115K per day), indicating complete coverage and no missing data across the period. **
+
+
+### Step 2: Cleaning Data
+
+## Why this step?
+
+The raw SCATS files contain multiple detector columns (V00-V95) for each site and timestamp.
+
+Before analysis, the data must be cleaned to:
+- Handle missing and negative counts
+- Aggregate detector counts into a single `total_volume` metric
+- Remove duplicate records for the same site and timestamp
+- Validate that the cleaned data is consistent
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+
+traffic <- traffic %>%
+  mutate(across(starts_with("v"), ~ replace_na(., 0)),      
+         across(starts_with("v"), ~ pmax(., 0)),            
+         total_volume = rowSums(across(starts_with("v"))))  
+
+
+traffic <- traffic %>%
+  group_by(nb_scats_site, qt_interval_count) %>%
+  summarise(total_volume = sum(total_volume), .groups = "drop")
+
+
+summary(traffic$total_volume)
+
+traffic %>%
+  ggplot(aes(total_volume)) +
+  geom_histogram(bins = 50, fill = "steelblue") +
+  labs(title = "Distribution of Total Volume", x = "Vehicles per Interval", y = "Count") +
+  theme_minimal()
+
+```
+
+
+**Result**  
+- All missing values replaced with zero, and negative counts clipped to zero.  
+- Combined `V00`–`V95` into a single `total_volume` per site-timestamp.  
+- No duplicate (site, timestamp) records remain after cleaning.  
+- Post-cleaning distribution shows:
+  - Majority of intervals record 20K–40K vehicles (typical flow)
+  - Expected high-volume tail during peak hours
+  - Small number of near-zero intervals (off-peak or low-traffic sites)
+
+## 3. Congestion Analysis
+
+### Why this step?
+Once the data is cleaned, we can explore traffic patterns to answer business questions such as:  
+- How does daily traffic volume vary across the month?  
+- Which sites handle the highest traffic volumes?  
+- What are the busiest hours for each site?  
+
+This analysis will help identify priority sites and time windows for signal timing optimisation.
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+library(lubridate)
 library(ggplot2)
 
-traffic_long <- traffic %>%
-  pivot_longer(
-    cols = starts_with("v"),
-    names_to = "interval",
-    values_to = "volume"
-  )
 
-traffic_long <- traffic_long %>%
-  mutate(
-    date = as.Date(QT_INTERVAL_COUNT),
-    interval_num = as.integer(substr(interval, 2, 3)),   
-    hour = floor(interval_num / 4),                   
-    weekday = wday(date, label = TRUE, abbr = FALSE)
-  )
+daily_volume <- traffic %>%
+  mutate(date = as.Date(qt_interval_count)) %>%
+  group_by(date) %>%
+  summarise(total_volume = sum(total_volume), .groups = "drop") %>%
+  mutate(weekday = wday(date, label = TRUE, abbr = FALSE),
+         is_weekend = ifelse(weekday %in% c("Saturday", "Sunday"), "Weekend", "Weekday"))
 
 
-traffic_by_hour <- traffic_long %>%
-  group_by(hour, weekday) %>%
-  summarise(avg_volume = mean(volume, na.rm = TRUE), .groups = "drop")
-
-ggplot(traffic_by_hour, aes(x = hour, y = weekday, fill = avg_volume)) +
-  geom_tile(color = "white") +
-  scale_fill_gradient(low = "green", high = "red") +
-  labs(
-    title = "Traffic Volume Heatmap by Hour and Weekday",
-    subtitle = "Red = heavier traffic volume",
-    x = "Hour of Day",
-    y = "Day of Week",
-    fill = "Vehicles/hr"
-  ) +
-  theme_minimal() +
-  theme(axis.text.y = element_text(size = 10))
-
-print(heatmap_plot)
+ggplot(daily_volume, aes(x = date, y = total_volume)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_point(aes(color = is_weekend), size = 2) +
+  scale_color_manual(values = c("Weekday" = "darkgreen", "Weekend" = "red")) +
+  scale_x_date(date_labels = "%b %d\n%A") +
+  labs(title = "Daily Traffic Volume (July 2025)",
+       x = "Date (Weekday)",
+       y = "Total Vehicles",
+       color = "Day Type") +
+  theme_minimal()
 
 
-ggsave("traffic_heatmap.png", plot = heatmap_plot, width = 8, height = 5, dpi = 300)
 ```
+**Conclusion:**  
+The daily traffic volume shows a clear weekly cycle, with noticeable drops corresponding to weekends.  
+Peak volumes occur mid-week (Tuesday to Thursday), indicating higher commuting activity on these days.  
+The pattern suggests a strong weekday–weekend effect, which could guide congestion management strategies.
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+# Simulated site dictionary
+site_names <- tibble::tibble(
+  nb_scats_site = c("3380", "4415", "4035", "3376", "0849"),
+  site_name = c(
+    "Location A",
+    "Location B",
+    "Location C",
+    "Location D",
+    "Location E"
+  )
+)
+
+# Calculate top 5 sites by total monthly volume (using fictional IDs)
+busy_sites <- traffic %>%
+  group_by(nb_scats_site) %>%
+  summarise(total_month = sum(total_volume), .groups = "drop") %>%
+  arrange(desc(total_month)) %>%
+  slice_head(n = 5) %>%
+  left_join(site_names, by = "nb_scats_site") # merge with simulated names
+
+busy_sites
+
+```
+> **Note on Data Sources**  
+> The SCATS site IDs and corresponding location names in this analysis are **simulated for demonstration purposes**.  
+> Due to restricted access, the official VicRoads SCATS location dataset could not be retrieved (HTTP 404 error).  
+> Therefore, all location references are masked and are used solely to illustrate the analytical workflow.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(scales)  
+
+busy_sites$site_name <- ifelse(is.na(busy_sites$site_name), "Unknown", busy_sites$site_name)
+
+ggplot(busy_sites, aes(x = reorder(site_name, -total_month), 
+                       y = total_month, fill = site_name)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(aes(label = scales::comma(total_month)), 
+            vjust = -0.3, size = 4) +
+  labs(
+    title = "Top 5 Simulated SCATS Sites by Monthly Traffic Volume",
+    subtitle = "Note: Site names are simulated for demonstration purposes",
+    x = "SCATS Site (Simulated)",
+    y = "Monthly Traffic Volume"
+  ) +
+  scale_y_continuous(labels = scales::comma) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1)  
+  )
+
+```
+**Conclusion:**  
+The analysis of simulated SCATS site data indicates that **Location A** recorded the highest estimated monthly traffic volume at **3,408,216 vehicles**, followed closely by **Location B** (3,216,125) and **Location C** (3,189,319). **Location D** and the **Unknown** site also showed substantial volumes, each exceeding **2.84 million** vehicles per month.
+
+These results highlight the simulated sites with the heaviest traffic loads, which—if replicated with real SCATS data—could inform congestion management priorities and infrastructure planning decisions.
+
+
+### Hourly Heatmap by Weekday (Top Sites)
+
+
+## Hourly Traffic Pattern Analysis – Top 2 High-Volume SCATS Sites
+
+After ranking all simulated SCATS sites by their total monthly traffic volume, the top two sites — **Location A** and **Location B** — were selected for detailed hourly analysis.  
+These locations represent the most critical intersections in the dataset, accounting for a significant proportion of overall traffic flow.  
+
+The hourly heatmaps (Figure X) display the **average vehicle volume** across all weekdays (y-axis) and hours of the day (x-axis), with warmer colors indicating higher volumes.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(readr)
+library(tidyr)
+library(lubridate)
+library(ggplot2)
+
+top2 <- busy_sites %>% slice_head(n = 2) %>% pull(nb_scats_site)
+
+
+files <- list.files("traffic_signal_volume_data_july_2025", full.names = TRUE)
+
+wide_top2 <- purrr::map_df(
+  files,
+  ~ read_csv(.x, col_types = cols(.default = col_double(),
+                                  NB_SCATS_SITE = col_character(),
+                                  QT_INTERVAL_COUNT = col_date())) %>%  
+    filter(NB_SCATS_SITE %in% top2)
+)
+
+
+long_top2 <- wide_top2 %>%
+  pivot_longer(cols = matches("^V\\d{2}$"),
+               names_to = "slot", values_to = "count", values_drop_na = TRUE)
+
+
+long_top2 <- long_top2 %>%
+  mutate(slot_idx = as.integer(sub("^V", "", slot)),       
+         minutes   = slot_idx * 15,                        
+         ts        = as.POSIXct(QT_INTERVAL_COUNT) + minutes * 60,
+         hour      = hour(ts),
+         weekday   = wday(ts, label = TRUE, abbr = FALSE, week_start = 1))
+
+
+site_lookup <- data.frame(
+  NB_SCATS_SITE = c("3380", "4415", "1234", "5678", "9999"), 
+  site_label = c("Location A", "Location B", "Location C", "Location D", "Unknown")
+)
+
+heat_dat_named <- heat_dat %>%
+  mutate(NB_SCATS_SITE = as.character(NB_SCATS_SITE)) %>%
+  left_join(site_lookup, by = "NB_SCATS_SITE")
+
+
+ggplot(heat_dat_named, aes(x = hour, y = weekday, fill = mean_vol)) +
+  geom_tile() +
+  facet_wrap(~ site_label, ncol = 2) +
+  scale_fill_viridis_c(name = "Avg Volume", option = "C") +
+  labs(
+    title = "Hourly Traffic Heatmap by Weekday (Simulated SCATS Sites)",
+    subtitle = "Note: Site names are simulated for demonstration purposes",
+    x = "Hour of Day (0–23)",
+    y = "Weekday"
+  ) +
+  theme_minimal(base_size = 13)
+
+```
+
+## Traffic Heatmap Analysis
+
+The heatmaps reveal distinct traffic patterns at two high-volume intersections:
+
+- **Location A** shows pronounced weekday peaks during morning (6–9 am) and afternoon (3–6 pm) commuting hours, with relatively balanced flows on weekends. This suggests commuter-dominated traffic, allowing for targeted peak-hour signal optimisation on weekdays and reduced resource allocation on weekends.  
+
+- **Location B** experiences consistently high traffic volumes from early morning (6 am) until evening (8 pm) across all days, including weekends. This pattern may be linked to nearby commercial areas, event venues, or tourist attractions, requiring continuous monitoring and adaptive control throughout the week.
+
+## Actionable Uses
+
+1. **Signal timing adjustments** to match demand by time of day and day of week. 
+
+2. **Event-related traffic management**, such as deploying temporary personnel and rerouting measures on weekends.  
+
+3. **Infrastructure maintenance scheduling**, avoiding peak periods to minimise disruption.  
+
+4. **Public transport scheduling**, adding services during peak demand hours.
+
+
+
+---
+
+**Summary:**  
+Analysis of traffic heatmaps for two major intersections revealed that Location A’s congestion is concentrated in weekday commute hours, while Location B maintains high volumes from morning to evening across all days. These patterns point to commuter-driven demand at Location A and continuous activity at Location B, guiding targeted signal timing, event traffic control, and maintenance scheduling to reduce congestion and optimise flow.
